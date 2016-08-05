@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1470203338 source:/home/omar/proyectoMIA_201403981/main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
