@@ -40,6 +40,10 @@ void automata(char inst[80]){
                     printf("En mkdisk\n");
                     estado=1;
                 }
+                else if(strcmp(token,"rmdisk")==0){
+                    printf("En rmdisk\n");
+                    estado=6;
+                }
                 break;
             case 1:
                 if(strcmp(token,"size")==0){
@@ -58,8 +62,8 @@ void automata(char inst[80]){
                     printf("En unit\n");
                     estado=5;
                 }else{
-                    crearDisco(size,path,nombre,unit);
-                    leer(path,nombre);
+                    //crearDisco(size,path,nombre,unit);
+                    //leer(path,nombre);
                     estado=0;
                 }
                 break;
@@ -83,11 +87,25 @@ void automata(char inst[80]){
                 strcpy(unit,token);
                 estado =1;
                 break;
+            case 6:
+                if(strcmp(token,"path")==0){
+                    printf("En path rmdisk\n");
+                    estado=7;
+                }else{
+                    eliminarDisco(path);
+                    estado =0;
+                }
+                break;
+            case 7:
+                printf("En valor de path: %s\n",token);
+                strcpy(path,token);
+                estado =6;
+                break;
         }
 
         token = strtok(NULL, s);
     }
-    printf("size: %d, name: %s, path: %s, unit: %s\n",size,nombre,path,unit);
+   // printf("size: %d, name: %s, path: %s, unit: %s\n",size,nombre,path,unit);
 }
 
 void crearDisco(int size, char path[50], char nombre[50], char unit[5]){
@@ -124,11 +142,24 @@ void leer(char path[50], char nombre[50]){
     strcat(direccion,nombre);
     FILE *file;
     file = fopen(direccion,"r");
+    if(file){
+        //fseek(file,sizeof(struct mbr),SEEK_SET);
+        fread(&a,sizeof(struct mbr),1,file);
 
-    fread(&a,sizeof(struct mbr),1,file);
+        printf("Fecha de creacion: %s, %ld\n",a.mbr_fecha_creacion,ftell(file));
+        fclose(file);
+    }else{
+        printf("Archivo no existe");
+    }
 
-    printf("Fecha de creacion: %s\n",a.mbr_fecha_creacion);
-    fclose(file);
+}
+
+void eliminarDisco(char path[50]){
+    if(remove(path)==0){
+        printf("Se ha eliminado disco: %s\n",path);
+    }else{
+        printf("No se pudo eliminar disco: %s\n",path);
+    }
 }
 
 int main()
@@ -148,7 +179,7 @@ int main()
     do{
             printf("root@omar_201403981:~$ ");
             fgets(instruccion,80,stdin);
-            strcat(instruccion,"$");
+            strcat(instruccion," $");
             automata(instruccion);
 
     }while(strcmp(instruccion,"exit")!=0);
