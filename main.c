@@ -15,10 +15,10 @@ struct mbr{
         int mbr_tamano;
         char mbr_fecha_creacion[128];
         int mbr_disk_signature;
-        struct particion *mbr_partition_1;
-        struct particion *mbr_partition_2;
-        struct particion *mbr_partition_3;
-        struct particion *mbr_partition_4;
+        struct particion mbr_partition_1;
+        struct particion mbr_partition_2;
+        struct particion mbr_partition_3;
+        struct particion mbr_partition_4;
 };
 
 void automata(char inst[80]){
@@ -43,6 +43,9 @@ void automata(char inst[80]){
                 else if(strcmp(token,"rmdisk")==0){
                     printf("En rmdisk\n");
                     estado=6;
+                }else if(strcmp(token,"fdisk")==0){
+                    printf("En fdisk\n");
+                    estado=8;
                 }
                 break;
             case 1:
@@ -62,7 +65,8 @@ void automata(char inst[80]){
                     printf("En unit\n");
                     estado=5;
                 }else{
-                    //crearDisco(size,path,nombre,unit);
+                    printf("size: %d, name: %s, path: %s, unit: %s-\n",size,nombre,path,unit);
+                    crearDisco(size,path,nombre,unit);
                     //leer(path,nombre);
                     estado=0;
                 }
@@ -101,6 +105,67 @@ void automata(char inst[80]){
                 strcpy(path,token);
                 estado =6;
                 break;
+
+            case 8:
+                if(strcmp(token,"size")==0){
+                    estado=9;
+                }
+                else if(strcmp(token,"unit")==0){
+                    estado=10;
+                }
+                 else if(strcmp(token,"path")==0){
+                    estado=11;
+                }
+                 else if(strcmp(token,"type")==0){
+                    estado=12;
+                }
+                 else if(strcmp(token,"fit")==0){
+                    estado=13;
+                }
+                 else if(strcmp(token,"delete")==0){
+                    estado=14;
+                }
+                 else if(strcmp(token,"name")==0){
+                    estado=15;
+                }
+                 else if(strcmp(token,"add")==0){
+                    estado=16;
+                }else{
+                    estado=0;
+                }
+                break;
+            case 9:
+                printf("valor p size\n");
+                estado=8;
+                break;
+            case 10:
+                printf("valor p unit\n");
+                estado=8;
+                break;
+            case 11:
+                printf("valor p path\n");
+                estado=8;
+                break;
+            case 12:
+                printf("valor p type\n");
+                estado=8;
+                break;
+            case 13:
+                printf("valor p fit\n");
+                estado=8;
+                break;
+            case 14:
+                printf("valor p delete\n");
+                estado=8;
+                break;
+            case 15:
+                printf("valor p name\n");
+                estado=8;
+                break;
+            case 16:
+                printf("valor p add\n");
+                estado=8;
+                break;
         }
 
         token = strtok(NULL, s);
@@ -110,6 +175,19 @@ void automata(char inst[80]){
 
 void crearDisco(int size, char path[50], char nombre[50], char unit[5]){
     srand(time(NULL));
+    int unitMult=1;
+    char kilobyte[1024];
+    int i=0;
+    for (i=0;i<1024;i++){
+        kilobyte[i]='\0';
+    }
+
+    if(strcmp(unit,"M")==0||strcmp(unit,"m")==0){
+        unitMult=size*1000;
+    }
+    else if(strcmp(unit,"K")==0||strcmp(unit,"k")==0||strcmp(unit,"K\n")==0||strcmp(unit,"k\n")==0){
+        unitMult=size;
+    }
 
     time_t tiempo = time(0);
     struct tm *tlocal = localtime(&tiempo);
@@ -120,18 +198,22 @@ void crearDisco(int size, char path[50], char nombre[50], char unit[5]){
     nuevoDisco.mbr_tamano=size;
     strcpy(nuevoDisco.mbr_fecha_creacion,output);
     nuevoDisco.mbr_disk_signature=10+(rand()%991);
-    nuevoDisco.mbr_partition_1=NULL;
-    nuevoDisco.mbr_partition_2=NULL;
-    nuevoDisco.mbr_partition_3=NULL;
-    nuevoDisco.mbr_partition_4=NULL;
+
     FILE *file;
     char direccion[80];
     strcpy(direccion,path);
     strcat(direccion,nombre);
 
     file = fopen(direccion,"w");
-    //fseek(file,sizeof(mbr),SEEK_SET);
+    fseek(file,sizeof(struct mbr),SEEK_SET);
     fwrite(&nuevoDisco,sizeof(struct mbr),1,file);
+    int j=0;
+    for(j=0;j<unitMult;j++){
+
+        fwrite(&kilobyte,sizeof(kilobyte),1,file);
+    }
+
+    //fwrite(0,sizeof(BYTE_ORDER),2048,file);
     fclose(file);
 }
 void leer(char path[50], char nombre[50]){
@@ -176,6 +258,7 @@ int main()
     leer(a,b);
     int i =1;
     char instruccion[80];
+  //  strcpy(instruccion,"mkdisk -size::200 -name::\"disco2.dsk\" -path::\"/home/omar/Escritorio/\"");
     do{
             printf("root@omar_201403981:~$ ");
             fgets(instruccion,80,stdin);
