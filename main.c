@@ -24,7 +24,7 @@ void automata(char inst[80]){
     char name_rep[20];
 
     char path_mount[50];
-    char name[10];
+    char name_mount[10];
 
     char path_part[50];
     char name_part[20];
@@ -50,14 +50,14 @@ void automata(char inst[80]){
         switch(estado){
             case 0:
                 if(strcmp(token,"mkdisk")==0){
-                    printf("En mkdisk\n");
+                    //printf("En mkdisk\n");
                     estado=1;
                 }
                 else if(strcmp(token,"rmdisk")==0){
-                    printf("En rmdisk\n");
+                    //printf("En rmdisk\n");
                     estado=6;
                 }else if(strcmp(token,"fdisk")==0){
-                    printf("En fdisk\n");
+                    //printf("En fdisk\n");
                     estado=8;
                 }else if(strcmp(token,"mount")){
                     estado=17;
@@ -65,19 +65,19 @@ void automata(char inst[80]){
                 break;
             case 1:
                 if(strcmp(token,"size")==0){
-                    printf("En size\n");
+                    //printf("En size\n");
                     estado=2;
                 }
                 else if(strcmp(token,"name")==0){
-                    printf("En name\n");
+                    //printf("En name\n");
                     estado=3;
                 }
                 else if(strcmp(token,"path")==0){
-                    printf("En path\n");
+                    //printf("En path\n");
                     estado=4;
                 }
                 else if(strcmp(token,"unit")==0){
-                    printf("En unit\n");
+                    //printf("En unit\n");
                     estado=5;
                 }else{
                     printf("size: %d, name: %s, path: %s, unit: %s-\n",size,nombre,path,unit);
@@ -87,28 +87,28 @@ void automata(char inst[80]){
                 }
                 break;
             case 2:
-                printf("En valor de size: %s\n",token);
+                //printf("En valor de size: %s\n",token);
                 size=atoi(token);
                 estado =1;
                 break;
             case 3:
-                printf("En valor de name: %s\n",token);
+                //printf("En valor de name: %s\n",token);
                 strcpy(nombre,token);
                 estado =1;
                 break;
             case 4:
-                printf("En valor de path: %s\n",token);
+                //printf("En valor de path: %s\n",token);
                 strcpy(path,token);
                 estado =1;
                 break;
             case 5:
-                printf("En valor de unit: %s\n",token);
+               // printf("En valor de unit: %s\n",token);
                 strcpy(unit,token);
                 estado =1;
                 break;
             case 6:
                 if(strcmp(token,"path")==0){
-                    printf("En path rmdisk\n");
+               //     printf("En path rmdisk\n");
                     estado=7;
                 }else{
                     eliminarDisco(path);
@@ -116,7 +116,7 @@ void automata(char inst[80]){
                 }
                 break;
             case 7:
-                printf("En valor de path: %s\n",token);
+                //printf("En valor de path: %s\n",token);
                 strcpy(path,token);
                 estado =6;
                 break;
@@ -147,46 +147,67 @@ void automata(char inst[80]){
                     estado=16;
                 }else{
                     printf("Nombre_part: %s, size_part: %d, path_part: %s-\n",name_part,size_part,path_part);
-                    crearParticion(path_part,size_part,name_part,type_part,fit);
+                    crearParticion(path_part,size_part,name_part,type_part,fit,unit_par);
                     estado=0;
                 }
                 break;
             case 9:
-                printf("valor p size\n");
+                //printf("valor p size\n");
                 size_part=atoi(token);
                 estado=8;
                 break;
             case 10:
-                printf("valor p unit\n");
+                //printf("valor p unit\n");
+                strcpy(unit_par,token);
                 estado=8;
                 break;
             case 11:
-                printf("valor p path\n");
+               // printf("valor p path\n");
                 strcpy(path_part,token);
                 estado=8;
                 break;
             case 12:
-                printf("valor p type\n");
+               // printf("valor p type\n");
+               strcpy(type_part,token);
                 estado=8;
                 break;
             case 13:
-                printf("valor p fit\n");
+               // printf("valor p fit\n");
                 strcpy(fit,token);
                 estado=8;
                 break;
             case 14:
-                printf("valor p delete\n");
+             //   printf("valor p delete\n");
                 estado=8;
                 break;
             case 15:
-                printf("valor p name\n");
+                //printf("valor p name\n");
                 strcpy(name_part,token);
                 estado=8;
                 break;
             case 16:
-                printf("valor p add\n");
+                //printf("valor p add\n");
                 estado=8;
                 break;
+
+            case 17:
+                if(strcmp(token,"path")==0){
+                    estado=18;
+                }
+                else if(strcmp(token,"name")==0){
+                    estado=19;
+                }else{
+
+                }
+
+            case 18:
+                strcpy(path_mount,token);
+                break;
+
+            case 19:
+                strcpy(name_mount,token);
+                break;
+
         }
 
         token = strtok(NULL, s);
@@ -261,6 +282,8 @@ void crearParticion(char path[50], int size, char name[16], char type_part[5], c
         size_part=size*1024*1024;
     }else if(strcmp(unit,"B")==0 || strcmp(unit,"b")==0){
          size_part=size;
+    }else{
+         size_part=size*1024;
     }
     struct particion part;
     strcpy(part.part_name,name);
@@ -333,12 +356,13 @@ void crearParticion(char path[50], int size, char name[16], char type_part[5], c
                                                 b.part[j].part_name,b.part[j].part_size,b.part[j].part_fit,b.part[j].part_type,b.part[j].part_start);
         }
 
-        reporte("/home/omar/Escritorio/tablaMBR.txt",b);
 
-     /*   printf("Fecha de creacion: %s, %ld, Tamaño: %d, Nombre part 1: %s\n",
+        /*printf("Fecha de creacion: %s, %ld, Tamaño: %d, Nombre part 1: %s\n",
                                     b.mbr_fecha_creacion,ftell(file),b.mbr_tamano,b.part[0].part_name);*/
 
         fclose(file);
+
+        reporte("/home/omar/Escritorio/tablaMBR.txt",b);
     }else{
         printf("Archivo no existe\n");
     }
@@ -387,6 +411,8 @@ void reporte(char path[100], struct mbr disco){
     int i=0;
     int num_part=1;
     for(i=0;i<4;i++){
+
+    if(disco.part[i].part_status==1){
         char str3[3];
 
         sprintf(str3, "%d",num_part);
@@ -422,6 +448,8 @@ void reporte(char path[100], struct mbr disco){
         strcat(texto,disco.part[i].part_name);
         strcat(texto,"</td></tr>");
     num_part++;
+
+        }
     }
 
     strcat(texto,"</table>>];}");
@@ -429,7 +457,11 @@ void reporte(char path[100], struct mbr disco){
     file=fopen(path,"w");
     fputs(texto,file);
     fclose(file);
-
+    char com[100];
+    strcpy(com,"dot -Tpng ");
+    strcat(com,path);
+    strcat(com," -o /home/omar/Escritorio/reporteMBR.png");
+    system(com);
 }
 
 void eliminarDisco(char path[50]){
@@ -460,7 +492,7 @@ int main()
 //crearDisco(50,"/home/omar/Escritorio/","disco1.dsk","K");
     int i =1;
     char instruccion[80];
-  crearParticion("/home/omar/Escritorio/disco1.dsk",5,"part1_prueba","P","FF","K");
+ // crearParticion("/home/omar/Escritorio/disco1.dsk",5,"part1_prueba","P","FF","K");
     //strcpy(instruccion,"mkdisk -size::200 -name::\"disco2.dsk\" -path::\"/home/omar/Escritorio/\"");
     do{
             printf("root@omar_201403981:~$ ");
